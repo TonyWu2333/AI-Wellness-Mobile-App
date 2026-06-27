@@ -33,7 +33,7 @@ app:
 # DeepSeek Chatbot Configuration
 # Fill in this one value with your DeepSeek API key.
 deepseek:
-  api-key: "sk-778df45e023645e99518019772c8f5f8"
+  api-key: ${DEEPSEEK_API_KEY:}
 
 # Python Agent Configuration
 agent:
