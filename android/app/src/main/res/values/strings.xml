@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Wellness App</string>
+    <string name="login">Login</string>
+    <string name="logout">Logout</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="email">Email</string>
+    <string name="register">Register</string>
+    <string name="health_records">Health Records</string>
+    <string name="add_record">Add Record</string>
+    <string name="edit_record">Edit Record</string>
+    <string name="delete_record">Delete</string>
+    <string name="sleep_hours">Sleep Hours</string>
+    <string name="activity_name">Activity Name</string>
+    <string name="activity_duration">Activity Duration (min)</string>
+    <string name="record_date">Date</string>
+    <string name="notes">Notes</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="chat">Chat</string>
+    <string name="send">Send</string>
+    <string name="type_message">Type a message...</string>
+    <string name="recommendations">Recommendations</string>
+    <string name="loading">Loading...</string>
+    <string name="error">An error occurred</string>
+    <string name="no_data">No data available</string>
+    <string name="confirm_delete">Confirm delete?</string>
+</resources>

@@ -1,0 +1,37 @@
+# Maven
+backend/target/
+backend/.mvn/
+*.jar
+*.war
+
+# Gradle
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+*.apk
+*.aab
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
+agent/__pycache__/
+agent/*.pyc
+agent/venv/
+agent/.venv/
+
+# Logs
+*.log
+
+# Environment
+.env
