@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
  * Register screen — creates a new account and navigates to main on success.
  *
  * @author WellnessApp Team
+ * @author ZHAO LEI
  */
 class RegisterActivity : AppCompatActivity() {
 
@@ -92,6 +93,19 @@ class RegisterActivity : AppCompatActivity() {
     private fun showLoading(loading: Boolean) {
         binding.progressBar.visibility = if (loading) View.VISIBLE else View.GONE
         binding.btnRegister.isEnabled = !loading
+    }
+
+    /**
+     * Opens the authenticated main screen and removes the login/register flow
+     * from the back stack after successful registration.
+     *
+     * @author ZHAO LEI
+     */
+    private fun navigateToMain() {
+        val intent = Intent(this, HealthRecordActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
     }
 
     private fun showError(message: String) {
