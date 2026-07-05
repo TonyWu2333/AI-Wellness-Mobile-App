@@ -10,7 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import com.wellnessapp.data.api.RetrofitClient
 import com.wellnessapp.data.model.LoginRequest
 import com.wellnessapp.databinding.ActivityLoginBinding
-import com.wellnessapp.ui.health.HealthRecordActivity
+import com.wellnessapp.ui.main.MainActivity
 import com.wellnessapp.util.TokenManager
 import kotlinx.coroutines.launch
 
@@ -91,7 +91,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun navigateToMain() {
-        val intent = Intent(this, HealthRecordActivity::class.java)
+        val intent = Intent(this, MainActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()

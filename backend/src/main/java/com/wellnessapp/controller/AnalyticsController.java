@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * REST controller for analytics dashboard data.
  *
- * @author WellnessApp Team
+ * @author Xuhan Zhang
  */
 @RestController
 @RequestMapping("/api/analytics")

@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 /**
  * Builds user-scoped analytics for dashboard views.
  *
- * @author WellnessApp Team
+ * @author Xuhan Zhang
  */
 @Service
 public class AnalyticsService {

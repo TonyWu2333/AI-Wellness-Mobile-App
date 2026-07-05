@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * DTOs for analytics dashboard responses.
  *
- * @author WellnessApp Team
+ * @author Xuhan Zhang
  */
 public class AnalyticsDTOs {
 
