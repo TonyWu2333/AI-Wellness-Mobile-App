@@ -2,6 +2,7 @@ package com.wellnessapp.ui.health
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -12,6 +13,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.wellnessapp.data.api.RetrofitClient
 import com.wellnessapp.data.model.WellnessRecord
 import com.wellnessapp.databinding.ActivityHealthRecordBinding
+import com.wellnessapp.ui.analytics.AnalyticsActivity
 import com.wellnessapp.ui.chat.ChatActivity
 import com.wellnessapp.ui.login.LoginActivity
 import com.wellnessapp.ui.rag.RagActivity
@@ -33,8 +35,10 @@ class HealthRecordActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d(TAG, "HealthRecordActivity onCreate")
         binding = ActivityHealthRecordBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        Log.d(TAG, "HealthRecordActivity setContentView done")
 
         setupToolbar()
         setupRecyclerView()
@@ -55,6 +59,10 @@ class HealthRecordActivity : AppCompatActivity() {
                 }
                 com.wellnessapp.R.id.action_recommendations -> {
                     startActivity(Intent(this, RecommendationActivity::class.java))
+                    true
+                }
+                com.wellnessapp.R.id.action_analytics -> {
+                    startActivity(Intent(this, AnalyticsActivity::class.java))
                     true
                 }
                 com.wellnessapp.R.id.action_rag -> {
@@ -194,5 +202,9 @@ class HealthRecordActivity : AppCompatActivity() {
     private fun showError(message: String) {
         binding.tvEmpty.text = message
         binding.tvEmpty.visibility = View.VISIBLE
+    }
+
+    companion object {
+        private const val TAG = "HealthRecordActivity"
     }
 }
