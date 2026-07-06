@@ -9,6 +9,8 @@ import androidx.lifecycle.lifecycleScope
 import com.wellnessapp.data.api.RetrofitClient
 import com.wellnessapp.data.model.RegisterRequest
 import com.wellnessapp.databinding.ActivityRegisterBinding
+import com.wellnessapp.ui.main.MainActivity
+import com.wellnessapp.util.TokenManager
 import kotlinx.coroutines.launch
 
 /**
@@ -82,24 +84,15 @@ class RegisterActivity : AppCompatActivity() {
         binding.btnRegister.isEnabled = !loading
     }
 
-    /**
-     * Returns the registered username to LoginActivity. The password remains
-     * empty so the user must explicitly authenticate.
-     *
-     * @author ZHAO LEI
-     */
-    private fun returnToLogin(username: String) {
-        val result = Intent().putExtra(EXTRA_REGISTERED_USERNAME, username)
-        setResult(Activity.RESULT_OK, result)
+    private fun navigateToMain() {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
         finish()
     }
 
     private fun showError(message: String) {
         binding.tvError.text = message
         binding.tvError.visibility = View.VISIBLE
-    }
-
-    companion object {
-        const val EXTRA_REGISTERED_USERNAME = "registered_username"
     }
 }

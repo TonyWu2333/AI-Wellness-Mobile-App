@@ -46,7 +46,6 @@ class LoginActivity : AppCompatActivity() {
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        setTheme(com.wellnessapp.R.style.Theme_WellnessApp)
         super.onCreate(savedInstanceState)
         Log.d(TAG, "LoginActivity onCreate")
         binding = ActivityLoginBinding.inflate(layoutInflater)

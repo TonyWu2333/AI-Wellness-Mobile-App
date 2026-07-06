@@ -13,6 +13,7 @@ import com.wellnessapp.ui.main.fragments.CoachFragment
 import com.wellnessapp.ui.main.fragments.DashboardFragment
 import com.wellnessapp.ui.main.fragments.KnowledgeFragment
 import com.wellnessapp.ui.main.fragments.RecordsFragment
+import com.wellnessapp.ui.main.fragments.SettingsFragment
 import com.wellnessapp.util.TokenManager
 
 /**
@@ -41,8 +42,9 @@ class MainActivity : AppCompatActivity() {
         setupBackBehavior()
         if (savedInstanceState == null) {
             showTab(R.id.action_dashboard)
+        } else {
+            selectTab(currentTabId)
         }
-        binding.bottomNavigation.selectedItemId = currentTabId
     }
 
     /**
@@ -52,6 +54,7 @@ class MainActivity : AppCompatActivity() {
      */
     private fun setupGlobalHeader() {
         binding.btnLogout.setOnClickListener { logout() }
+        binding.btnSettings.setOnClickListener { showTab(R.id.action_settings) }
         updateMainTitle(currentTabId)
     }
 
@@ -75,7 +78,11 @@ class MainActivity : AppCompatActivity() {
      * @author Xuhan Zhang
      */
     fun selectTab(itemId: Int) {
-        binding.bottomNavigation.selectedItemId = itemId
+        if (itemId == R.id.action_settings) {
+            showTab(itemId)
+        } else {
+            binding.bottomNavigation.selectedItemId = itemId
+        }
     }
 
     /**
@@ -116,10 +123,28 @@ class MainActivity : AppCompatActivity() {
 
         val fragment = createFragment(itemId) ?: return false
         currentTabId = itemId
+
+        // If it's one of the bottom navigation items, ensure it's selected there.
+        // If it's settings (now in top bar), we might want to unselect bottom nav.
+        if (itemId == R.id.action_settings) {
+            uncheckBottomNavigation()
+        }
+
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, fragment)
             .commit()
         return true
+    }
+
+    /**
+     * Unchecks all items in the bottom navigation view.
+     */
+    private fun uncheckBottomNavigation() {
+        binding.bottomNavigation.menu.setGroupCheckable(0, true, false)
+        for (i in 0 until binding.bottomNavigation.menu.size()) {
+            binding.bottomNavigation.menu.getItem(i).isChecked = false
+        }
+        binding.bottomNavigation.menu.setGroupCheckable(0, true, true)
     }
 
     /**
@@ -134,6 +159,7 @@ class MainActivity : AppCompatActivity() {
             R.id.action_coach -> "AI Coach"
             R.id.action_chat -> "Chat"
             R.id.action_knowledge -> "Knowledge"
+            R.id.action_settings -> "Settings"
             else -> "Health Dashboard"
         }
     }
@@ -150,6 +176,7 @@ class MainActivity : AppCompatActivity() {
             R.id.action_coach -> CoachFragment()
             R.id.action_chat -> ChatFragment()
             R.id.action_knowledge -> KnowledgeFragment()
+            R.id.action_settings -> SettingsFragment()
             else -> null
         }
     }

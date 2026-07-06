@@ -92,11 +92,13 @@ class ChatFragment : Fragment() {
     /**
      * Wires text, voice, and IME send actions.
      *
+     * @author Tao Yuchen
      * @author Xuhan Zhang
      * @author ZHAO LEI
      */
     private fun setupListeners() {
         binding.btnSend.setOnClickListener { sendMessage() }
+        binding.btnNewChat.setOnClickListener { startNewConversation() }
         binding.btnVoice.setOnClickListener { startVoiceInput() }
         binding.etMessage.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEND) {
@@ -106,6 +108,12 @@ class ChatFragment : Fragment() {
                 false
             }
         }
+    }
+
+    private fun startNewConversation() {
+        adapter.clearMessages()
+        binding.tvEmpty.visibility = View.VISIBLE
+        binding.etMessage.text?.clear()
     }
 
     /**
