@@ -50,7 +50,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/chat/**").authenticated()
                 .requestMatchers("/api/agent/**").authenticated()
                 .requestMatchers("/api/recommendations/**").authenticated()
+                .requestMatchers("/api/weekly-summaries/**").authenticated()
                 .requestMatchers("/api/rag/**").authenticated()
+                .requestMatchers("/api/analytics/**").authenticated()
                 // All other requests
                 .anyRequest().authenticated()
             )

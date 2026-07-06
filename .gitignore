@@ -1,8 +1,11 @@
 # Maven
 backend/target/
 backend/.mvn/
+backend/data/
+.m2/
 *.jar
 *.war
+!android/gradle/wrapper/gradle-wrapper.jar
 
 # Gradle
 android/.gradle/
@@ -17,9 +20,20 @@ agent/.rag_store/
 # Scraper data (generated)
 scraper/output/
 
+# Temporary generated files
+tmp/
+
 # Environment
 .env
+.env.*
+!.env.example
 .rag_store/
+*.pem
+*.p12
+*.jks
+*.keystore
+google-services.json
+GoogleService-Info.plist
 
 # IDE
 .idea/
@@ -53,4 +67,5 @@ agent/.venv/
 
 # Environment
 .env
-
+.env.*
+!.env.example

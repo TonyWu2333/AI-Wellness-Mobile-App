@@ -2,15 +2,18 @@ package com.wellnessapp.ui.health
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.wellnessapp.data.api.RetrofitClient
 import com.wellnessapp.data.model.WellnessRecord
 import com.wellnessapp.databinding.ActivityHealthRecordBinding
+import com.wellnessapp.ui.analytics.AnalyticsActivity
 import com.wellnessapp.ui.chat.ChatActivity
 import com.wellnessapp.ui.login.LoginActivity
 import com.wellnessapp.ui.rag.RagActivity
@@ -28,11 +31,14 @@ class HealthRecordActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityHealthRecordBinding
     private lateinit var adapter: WellnessRecordAdapter
+    private var allRecords: List<WellnessRecord> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d(TAG, "HealthRecordActivity onCreate")
         binding = ActivityHealthRecordBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        Log.d(TAG, "HealthRecordActivity setContentView done")
 
         setupToolbar()
         setupRecyclerView()
@@ -53,6 +59,10 @@ class HealthRecordActivity : AppCompatActivity() {
                 }
                 com.wellnessapp.R.id.action_recommendations -> {
                     startActivity(Intent(this, RecommendationActivity::class.java))
+                    true
+                }
+                com.wellnessapp.R.id.action_analytics -> {
+                    startActivity(Intent(this, AnalyticsActivity::class.java))
                     true
                 }
                 com.wellnessapp.R.id.action_rag -> {
@@ -80,6 +90,7 @@ class HealthRecordActivity : AppCompatActivity() {
 
     private fun setupListeners() {
         binding.swipeRefresh.setOnRefreshListener { loadRecords() }
+        binding.etSearchRecords.doAfterTextChanged { applyRecordFilter() }
         binding.fabAdd.setOnClickListener {
             startActivity(Intent(this, RecordFormActivity::class.java))
         }
@@ -91,12 +102,8 @@ class HealthRecordActivity : AppCompatActivity() {
             try {
                 val response = RetrofitClient.apiService.getWellnessRecords()
                 if (response.isSuccessful && response.body()?.success == true) {
-                    val records = response.body()!!.data ?: emptyList()
-                    adapter.submitList(records)
-                    binding.tvEmpty.visibility =
-                        if (records.isEmpty()) View.VISIBLE else View.GONE
-                    binding.recyclerView.visibility =
-                        if (records.isEmpty()) View.GONE else View.VISIBLE
+                    allRecords = response.body()!!.data ?: emptyList()
+                    applyRecordFilter()
                 } else if (response.code() == 401 || response.code() == 403) {
                     handleSessionExpired()
                 } else {
@@ -111,6 +118,32 @@ class HealthRecordActivity : AppCompatActivity() {
                 binding.swipeRefresh.isRefreshing = false
             }
         }
+    }
+
+    private fun applyRecordFilter() {
+        val query = binding.etSearchRecords.text?.toString()?.trim()?.lowercase().orEmpty()
+        val filteredRecords = if (query.isEmpty()) {
+            allRecords
+        } else {
+            allRecords.filter { record ->
+                record.recordDate.lowercase().contains(query) ||
+                        record.activityName.orEmpty().lowercase().contains(query) ||
+                        record.sleepHours?.toString().orEmpty().contains(query) ||
+                        record.activityDurationMinutes?.toString().orEmpty().contains(query) ||
+                        record.notes.orEmpty().lowercase().contains(query)
+            }
+        }
+
+        adapter.submitList(filteredRecords)
+        binding.recyclerView.visibility =
+            if (filteredRecords.isEmpty()) View.GONE else View.VISIBLE
+        binding.tvEmpty.text = when {
+            allRecords.isEmpty() -> getString(com.wellnessapp.R.string.no_data)
+            filteredRecords.isEmpty() -> getString(com.wellnessapp.R.string.no_matching_records)
+            else -> getString(com.wellnessapp.R.string.no_data)
+        }
+        binding.tvEmpty.visibility =
+            if (filteredRecords.isEmpty()) View.VISIBLE else View.GONE
     }
 
     private fun openEditForm(record: WellnessRecord) {
@@ -169,5 +202,9 @@ class HealthRecordActivity : AppCompatActivity() {
     private fun showError(message: String) {
         binding.tvEmpty.text = message
         binding.tvEmpty.visibility = View.VISIBLE
+    }
+
+    companion object {
+        private const val TAG = "HealthRecordActivity"
     }
 }

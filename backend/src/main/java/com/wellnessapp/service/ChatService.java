@@ -35,6 +35,7 @@ import com.wellnessapp.repository.ChatMessageRepository;
  * </ol>
  *
  * @author WellnessApp Team
+ * @author ZHAO LEI
  */
 @Service
 public class ChatService {
@@ -43,6 +44,7 @@ public class ChatService {
 
     private final ChatMessageRepository chatMessageRepository;
     private final AIClientService aiClientService;
+    private final WellnessInsightsService wellnessInsightsService;
     private final RestClient restClient;
     private final String agentBaseUrl;
 
@@ -52,9 +54,11 @@ public class ChatService {
     public ChatService(
             ChatMessageRepository chatMessageRepository,
             AIClientService aiClientService,
+            WellnessInsightsService wellnessInsightsService,
             @Value("${agent.python.base-url:http://localhost:5001}") String agentBaseUrl) {
         this.chatMessageRepository = chatMessageRepository;
         this.aiClientService = aiClientService;
+        this.wellnessInsightsService = wellnessInsightsService;
         this.agentBaseUrl = agentBaseUrl;
         this.restClient = RestClient.builder()
                 .defaultHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
@@ -72,22 +76,28 @@ public class ChatService {
 
         // 1. Build conversation history from DB
         List<Map<String, String>> history = buildHistory(user);
+        String wellnessContext = wellnessInsightsService.buildChatContext(user, 14);
 
         // 2. Try 3 tiers
-        String reply = tryPythonAgent(userMessage, history);
-        if (reply != null) {
+        AgentReply agentReply = tryPythonAgent(userMessage, history, wellnessContext);
+        String reply = agentReply != null ? agentReply.reply() : null;
+        List<SourceInfo> sources = agentReply != null ? agentReply.sources() : List.of();
+        List<Map<String, Object>> toolCalls =
+                agentReply != null ? agentReply.toolCalls() : List.of();
+
+        if (agentReply != null) {
             log.info("User {} → Tier-1 (Python RAG) responded", user.getId());
         }
 
         if (reply == null) {
-            reply = tryDirectDeepSeek(userMessage, history);
+            reply = tryDirectDeepSeek(userMessage, history, wellnessContext);
             if (reply != null) {
                 log.info("User {} → Tier-2 (Direct DeepSeek) responded", user.getId());
             }
         }
 
         if (reply == null) {
-            reply = buildFallbackReply();
+            reply = buildFallbackReply(wellnessContext);
             log.warn("User {} → Tier-3 (static fallback) used", user.getId());
         }
 
@@ -102,6 +112,8 @@ public class ChatService {
         return ChatResponse.builder()
                 .reply(reply)
                 .timestamp(LocalDateTime.now().toString())
+                .sources(sources)
+                .toolCalls(toolCalls)
                 .build();
     }
 
@@ -124,11 +136,18 @@ public class ChatService {
     // ── 3-Tier fallback ────────────────────────────────────────────
 
     /** Tier 1: Python Agent with RAG tool calling. */
-    private String tryPythonAgent(String userMessage, List<Map<String, String>> history) {
+    private AgentReply tryPythonAgent(
+            String userMessage,
+            List<Map<String, String>> history,
+            String wellnessContext) {
         try {
+            List<Map<String, String>> contextualHistory = new ArrayList<>();
+            contextualHistory.add(Map.of("role", "system", "content", wellnessContext));
+            contextualHistory.addAll(history);
+
             Map<String, Object> body = Map.of(
                     "message", userMessage,
-                    "history", history
+                    "history", contextualHistory
             );
 
             @SuppressWarnings("unchecked")
@@ -139,7 +158,15 @@ public class ChatService {
                     .body(Map.class);
 
             if (response != null && Boolean.TRUE.equals(response.get("success"))) {
-                return (String) response.get("answer");
+                Object answer = response.get("answer");
+                if (answer == null || answer.toString().isBlank()) {
+                    log.warn("Python agent returned an empty answer");
+                    return null;
+                }
+                return new AgentReply(
+                        answer.toString(),
+                        mapSources(response.get("sources")),
+                        mapToolCalls(response.get("tool_calls")));
             }
             log.warn("Python agent returned unsuccessful response: {}", response);
             return null;
@@ -150,11 +177,16 @@ public class ChatService {
     }
 
     /** Tier 2: Direct DeepSeek call (no RAG). */
-    private String tryDirectDeepSeek(String userMessage, List<Map<String, String>> history) {
+    private String tryDirectDeepSeek(
+            String userMessage,
+            List<Map<String, String>> history,
+            String wellnessContext) {
         try {
             // Build message list: system prompt + history + new user message
             List<Map<String, String>> messages = new ArrayList<>();
-            messages.add(Map.of("role", "system", "content", AIClientService.SYSTEM_PROMPT));
+            messages.add(Map.of(
+                    "role", "system",
+                    "content", AIClientService.SYSTEM_PROMPT + "\n\n" + wellnessContext));
             messages.addAll(history);
             messages.add(Map.of("role", "user", "content", userMessage));
 
@@ -166,7 +198,12 @@ public class ChatService {
     }
 
     /** Tier 3: Static fallback when both AI services are down. */
-    private String buildFallbackReply() {
+    private String buildFallbackReply(String wellnessContext) {
+        if (wellnessContext.contains("has no wellness records")) {
+            return "I cannot see any wellness records from the last 14 days yet. "
+                    + "Please log your sleep and activity first, then I can answer questions "
+                    + "about your weekly sleep, exercise, and improvement priorities.";
+        }
         return "\uD83D\uDC4B Hi! I'm WellBot. I'm currently offline, but I'll be back soon. "
                 + "Please try again in a moment. "
                 + "In the meantime, you can check your wellness records in the app!";
@@ -202,5 +239,71 @@ public class ChatService {
 
     private static String truncate(String s, int max) {
         return s.length() <= max ? s : s.substring(0, max) + "...";
+    }
+
+    /**
+     * Converts the Python agent's snake_case source payload into the public
+     * Spring API's camelCase DTO contract.
+     *
+     * @author ZHAO LEI
+     */
+    private List<SourceInfo> mapSources(Object rawSources) {
+        if (!(rawSources instanceof List<?> sourceList)) {
+            return List.of();
+        }
+
+        List<SourceInfo> sources = new ArrayList<>();
+        for (Object item : sourceList) {
+            if (!(item instanceof Map<?, ?> source)) {
+                continue;
+            }
+            Object rank = source.get("rank");
+            Object score = source.get("score");
+            sources.add(SourceInfo.builder()
+                    .rank(rank instanceof Number number ? number.intValue() : 0)
+                    .title(stringValue(source.get("title")))
+                    .section(stringValue(source.get("section")))
+                    .sourceUrl(stringValue(source.get("source_url")))
+                    .score(score instanceof Number number ? number.doubleValue() : 0.0)
+                    .build());
+        }
+        return sources;
+    }
+
+    /**
+     * Copies the Python tool trace into JSON-safe maps without exposing raw
+     * wildcard map types to the response DTO.
+     *
+     * @author ZHAO LEI
+     */
+    private List<Map<String, Object>> mapToolCalls(Object rawToolCalls) {
+        if (!(rawToolCalls instanceof List<?> toolList)) {
+            return List.of();
+        }
+
+        List<Map<String, Object>> toolCalls = new ArrayList<>();
+        for (Object item : toolList) {
+            if (!(item instanceof Map<?, ?> tool)) {
+                continue;
+            }
+            Map<String, Object> mapped = new java.util.LinkedHashMap<>();
+            for (Map.Entry<?, ?> entry : tool.entrySet()) {
+                if (entry.getKey() != null) {
+                    mapped.put(entry.getKey().toString(), entry.getValue());
+                }
+            }
+            toolCalls.add(mapped);
+        }
+        return toolCalls;
+    }
+
+    private static String stringValue(Object value) {
+        return value == null ? "" : value.toString();
+    }
+
+    private record AgentReply(
+            String reply,
+            List<SourceInfo> sources,
+            List<Map<String, Object>> toolCalls) {
     }
 }

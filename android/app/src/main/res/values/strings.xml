@@ -22,8 +22,22 @@
     <string name="send">Send</string>
     <string name="type_message">Type a message...</string>
     <string name="recommendations">Recommendations</string>
+    <string name="analytics_dashboard">Analytics Dashboard</string>
+    <string name="nav_dashboard">Dashboard</string>
+    <string name="nav_records">Records</string>
+    <string name="nav_coach">Coach</string>
+    <string name="nav_chat">Chat</string>
+    <string name="nav_knowledge">Knowledge</string>
+    <string name="dashboard_preview_subtitle">Your wellness overview</string>
+    <string name="open_dashboard">Open Dashboard</string>
     <string name="loading">Loading...</string>
     <string name="error">An error occurred</string>
     <string name="no_data">No data available</string>
     <string name="confirm_delete">Confirm delete?</string>
+    <string name="search_records">Search date, activity, or notes</string>
+    <string name="no_matching_records">No matching records</string>
+    <string name="voice_input">Voice input</string>
+    <string name="voice_prompt">Ask WellBot a wellness question</string>
+    <string name="voice_unavailable">Voice input is not available on this device</string>
+    <string name="voice_not_recognized">No speech was recognized</string>
 </resources>

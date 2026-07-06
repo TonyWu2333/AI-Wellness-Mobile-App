@@ -12,6 +12,10 @@ This service now exposes two flows:
 Fill these in manually before running the service:
 
 ```bash
+DASHSCOPE_API_KEY=
+OPENAI_CHAT_URL=https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+OPENAI_MODEL=qwen3.7-plus
+
 DEEPSEEK_API_KEY=
 DEEPSEEK_BASE_URL=https://api.deepseek.com
 DEEPSEEK_MODEL=deepseek-chat
@@ -24,6 +28,16 @@ RAG_CORPUS_GLOB=../scraper/output/*_msd_chunks.jsonl
 RAG_STORE_PATH=.rag_store/rag_index.json
 RAG_TOP_K=5
 ```
+
+`DOUBAO_API_KEY` is only required for full embedding-based RAG indexing.
+If it is missing, the agent still starts and keeps `/chat` and `/rag/ask`
+available through direct GPT fallback, while `/rag/reindex` reports that RAG
+indexing is unavailable.
+
+`OPENAI_API_KEY` and `DASHSCOPE_API_KEY` are interchangeable for the
+OpenAI-compatible fallback. For a dedicated DashScope deployment, use the
+deployment-specific URL shown in the Alibaba Cloud API example and append
+`/chat/completions` to its `base_url`.
 
 ## Run
 

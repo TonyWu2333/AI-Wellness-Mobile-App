@@ -19,7 +19,8 @@
 
         <activity
             android:name=".ui.login.LoginActivity"
-            android:exported="true">
+            android:exported="true"
+            android:theme="@style/Theme.WellnessApp.PlainLogin">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -35,6 +36,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".ui.main.MainActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".ui.health.RecordFormActivity"
             android:exported="false" />
 
@@ -44,6 +49,14 @@
 
         <activity
             android:name=".ui.recommendation.RecommendationActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.summary.WeeklySummaryActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.analytics.AnalyticsActivity"
             android:exported="false" />
 
         <activity
